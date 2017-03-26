@@ -1,0 +1,27 @@
+{
+  "name": "it-410-hello-sessions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nilestanner/IT-410-Hello-sessions.git"
+  },
+  "author": "niles tanner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nilestanner/IT-410-Hello-sessions/issues"
+  },
+  "homepage": "https://github.com/nilestanner/IT-410-Hello-sessions#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.2",
+    "express-session": "^1.15.1",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0"
+  }
+}

@@ -10,7 +10,18 @@ var session             = require('express-session');
 var app = express();
 
 // tell passport to use a local strategy and tell it how to validate a username and password
-passport.use(new LocalStrategy(function(username, password, done) {
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'passwd'
+  },function(username, password, done) {
+    // User.findOne({username: username}, function(err,user){
+    //   if(err){
+    //     return done(err);
+    //   }
+    //   if(!user){
+    //
+    //   }
+    // });
     if (username && password === 'pass') return done(null, { username: username });
     return done(null, false);
 }));
@@ -58,6 +69,19 @@ app.delete('/auth', function(req, res) {
     req.logout();
     res.send('You have logged out.');
 });
+
+// Health endpoint
+app.get('/health',
+    function(req, res) {
+        return res.sendStatus(200);
+    }
+);
+
+// Login endpoint
+app.post('/login',
+  passport.authenticate('local', { successRedirect: '/',failureRedirect: '/protected' })
+
+);
 
 // start the server listening
 app.listen(3000, function () {

@@ -16,7 +16,7 @@ passport.use(new LocalStrategy(function(username, password, done) {
       database[username] = {
         username : username,
         password : password,
-        keyPairs : []
+        keyPairs : {}
       };
     }
     return done(null, database[username]);
@@ -46,10 +46,7 @@ app.put('/',
         if (!req.user) {
           return res.sendStatus(401);
         }else{
-          database[req.user.username].keyPairs.push({
-            key:req.query.key,
-            value:req.query.value
-          });
+          database[req.user.username].keyPairs[req.query.key] = req.query.value;
           return res.send(database[req.user.username].keyPairs);
         }
     }
@@ -74,7 +71,6 @@ app.get('/',
       if(!req.user){
         return res.sendStatus(401);
       }else{
-        console.log(database[req.user.username]);
         return res.send(database[req.user.username].keyPairs);
       }
     }
@@ -106,9 +102,7 @@ app.delete('/',function(req, res){
   if(!req.user){
     return res.sendStatus(401);
   }else{
-    database[req.user.username].keyPairs = database[req.user.username].keyPairs.filter(function(keypair){
-      return keypair.key !== req.query.key;
-    });
+    delete database[req.user.username].keyPairs[req.query.key];
     return res.send(database[req.user.username].keyPairs);
   }
 });

@@ -9,31 +9,27 @@ var session             = require('express-session');
 // initialize express app
 var app = express();
 
+var database = {};
 // tell passport to use a local strategy and tell it how to validate a username and password
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'passwd'
-  },function(username, password, done) {
-    // User.findOne({username: username}, function(err,user){
-    //   if(err){
-    //     return done(err);
-    //   }
-    //   if(!user){
-    //
-    //   }
-    // });
-    if (username && password === 'pass') return done(null, { username: username });
-    return done(null, false);
+passport.use(new LocalStrategy(function(username, password, done) {
+    if(!database[username]){
+      database[username] = {
+        username : username,
+        password : password,
+        keyPairs : []
+      };
+    }
+    return done(null, database[username]);
 }));
 
 // tell passport how to turn a user into serialized data that will be stored with the session
 passport.serializeUser(function(user, done) {
-    done(null, user.username);
+    done(null, user);
 });
 
 // tell passport how to go from the serialized data back to the user
-passport.deserializeUser(function(id, done) {
-    done(null, { username: id });
+passport.deserializeUser(function(user, done) {
+    done(null, user);
 });
 
 // tell the express app what middleware to use
@@ -43,17 +39,19 @@ app.use(session({ secret: 'secret key', resave: false, saveUninitialized: true }
 app.use(passport.initialize());
 app.use(passport.session());
 
-// home page
-app.get('/', function (req, res) {
-    if (req.user) return res.send('Hello, ' + req.user.username);
-    res.send('Hello, Stranger!');
-});
 
 // specify a URL that only authenticated users can hit
-app.get('/protected',
+app.put('/',
     function(req, res) {
-        if (!req.user) return res.sendStatus(401);
-        res.send('You have access.');
+        if (!req.user) {
+          return res.sendStatus(401);
+        }else{
+          database[req.user.username].keyPairs.push({
+            key:req.query.key,
+            value:req.query.value
+          });
+          return res.send(database[req.user.username].keyPairs);
+        }
     }
 );
 
@@ -65,23 +63,51 @@ app.put('/auth',
     });
 
 // log the user out
-app.delete('/auth', function(req, res) {
+app.get('/logout', function(req, res) {
     req.logout();
     res.send('You have logged out.');
 });
 
 // Health endpoint
+app.get('/',
+    function(req, res) {
+      if(!req.user){
+        return res.sendStatus(401);
+      }else{
+        console.log(database[req.user.username]);
+        return res.send(database[req.user.username].keyPairs);
+      }
+    }
+);
+// keypairs
 app.get('/health',
     function(req, res) {
         return res.sendStatus(200);
     }
 );
 
+// keypairs
+app.get('/protected',
+    function(req, res) {
+        return res.sendStatus(401);
+    }
+);
+
 // Login endpoint
 app.post('/login',
-  passport.authenticate('local', { successRedirect: '/',failureRedirect: '/protected' })
-
+    passport.authenticate('local', { successRedirect: '/',failureRedirect: '/protected' })
 );
+
+app.delete('/',function(req, res){
+  if(!req.user){
+    return res.sendStatus(401);
+  }else{
+    database[req.user.username].keyPairs = database[req.user.username].keyPairs.filter(function(keypair){
+      return keypair.key !== req.query.key;
+    });
+    return res.send(database[req.user.username].keyPairs);
+  }
+});
 
 // start the server listening
 app.listen(3000, function () {

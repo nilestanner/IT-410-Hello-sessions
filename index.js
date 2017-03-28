@@ -65,7 +65,7 @@ app.put('/auth',
 // log the user out
 app.get('/logout', function(req, res) {
     req.logout();
-    res.send('You have logged out.');
+    res.sendStatus(200);
 });
 
 // Health endpoint
@@ -95,8 +95,12 @@ app.get('/protected',
 
 // Login endpoint
 app.post('/login',
-    passport.authenticate('local', { successRedirect: '/',failureRedirect: '/protected' })
-);
+    passport.authenticate('local'),
+    function(req, res) {
+        // console.log(req.body);
+        res.send(database[req.user.username].keyPairs);
+    });
+
 
 app.delete('/',function(req, res){
   if(!req.user){
